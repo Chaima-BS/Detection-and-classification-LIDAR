@@ -7,7 +7,7 @@
 using namespace std;
 using namespace pcl;
 
-float roiM = 50;
+float roiM = 100;
 int kernelSize = 3;
 
 // Initialize the Grid state

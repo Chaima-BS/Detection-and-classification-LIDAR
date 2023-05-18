@@ -71,3 +71,7 @@ target_link_libraries(remove_ground ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 set(SOURCE_FILES2 src/Detecter/cluster/main.cpp src/Detecter/cluster/clustering.cpp src/Detecter/cluster/box_fitting.cpp )
 add_executable(cluster ${SOURCE_FILES2})
 target_link_libraries(cluster ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
+
+set(SOURCE_FILES3 src/Tracker/main.cpp src/Tracker/ukf.cpp src/Tracker/imm_ukf_jpda.cpp)
+add_executable(tracker ${SOURCE_FILES3})
+target_link_libraries(tracker ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})

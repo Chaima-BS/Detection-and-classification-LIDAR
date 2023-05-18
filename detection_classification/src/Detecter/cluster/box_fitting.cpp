@@ -11,28 +11,28 @@ using namespace std;
 using namespace pcl;
 using namespace cv;
 
-float picScale = 900/roiM;
-int ramPoints = 100;
+float picScale = 2000/roiM;
+int ramPoints = 200;
 int lSlopeDist = 1.0;
 
-int lnumPoints = 10;
+int lnumPoints = 50;
 
 float sensorHeight = 0.25;
-float tHeightMin = 0.2;
+float tHeightMin = -0.5;
 float tHeightMax = 2.5;
 
-float tWidthMin = 0.5;//0.25
+float tWidthMin = 0.2;
 float tWidthMax = 3.5;
-float tLenMin = 0.5;//0.5
-float tLenMax = 20.0;
-float tAreaMax = 30.0;
+float tLenMin = 0.5;
+float tLenMax = 15.0;
+float tAreaMax = 50.0;
 
 
 float tRatioMin = 2.0;
 float tRatioMax = 8.0;
 
 float minLenRatio = 3.0;
-float tPtPerM3 = 8;
+float tPtPerM3 = 2;
 
 void getClusteredPoints(PointCloud<PointXYZ>::Ptr elevatedCloud,
                         array<array<int, numGrid>, numGrid> cartesianData,
@@ -77,7 +77,6 @@ void getPointsInPcFrame(Point2f rectPoints[], vector<Point2f>& pcPoints, int off
         // reverse to 30mx30m scale
         float rmX = rX/picScale;  //  float picScale = 900/roiM;
         float rmY = rY/picScale;
-        // reverse from (0 < x,y < 30) to (-15 < x,y < 15)
         float pcX = rmX - roiM/2;
         float pcY = rmY - roiM/2;
         Point2f point(pcX, pcY);
