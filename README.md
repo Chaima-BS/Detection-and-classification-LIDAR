@@ -2,6 +2,8 @@
 PCL based ROS package to Detect/Cluster --> Track --> Classify static and dynamic objects in real-time from LIDAR scans implemented in C++.
 This package includes Ground Removal, Object Clustering, Bounding Box, Uscented Kalman Filter, Multi Motion Models interaction, Probabilistic Data Association, Track Management and Object Classification (Static/Dynamic)
 
+![](./overview/result.gif)
+
 ### Setup
 ##### Frameworks and Packages
 Make sure you have the following is installed:
@@ -66,6 +68,5 @@ rosrun detection_classification tracker
 ```
 ### Result
 
-<img src="./overview/classification_points.png" alt= “” width="60%" height="40%">
+<img src="./overview/classification_points.png" alt= “” width="70%" height="50%">
 
-![](./overview/result.gif)
