@@ -23,18 +23,18 @@ void mapCartesianGrid(PointCloud<PointXYZ>::Ptr elevatedCloud,
         }
     }
     
-    // elevatedCloud maps to the Cartesian coordinate system and counts how many points fall on this grid! ! !
+    // elevatedCloud maps to the Cartesian coordinate system and counts how many points fall on this grid!!
     for(int i = 0; i < elevatedCloud->size(); i++){ 
-        float x = elevatedCloud->points[i].x;   // x(-15, 15),y(-50, 50)
+        float x = elevatedCloud->points[i].x; 
         float y = elevatedCloud->points[i].y;
-        float xC = x+roiM/2;   // float roiM = 50;(0~50)
-        float yC = y+roiM/2; // (0~50)
+        float xC = x+roiM/2; 
+        float yC = y+roiM/2;
         // exclude outside roi points 
         if(xC < 0 || xC >= roiM || yC < 0 || yC >=roiM) continue;
         int xI = floor(numGrid*xC/roiM);   //  xI .yI    const int numGrid = 250; 
-        int yI = floor(numGrid*yC/roiM);   // 50x50 maps to → 250x250
+        int yI = floor(numGrid*yC/roiM); 
         gridNum[xI][yI] = gridNum[xI][yI] + 1;  //Count how many points fall on this grid
-        // cout << "gridNum[xI][yI]: " << gridNum[xI][yI] << "------------- count how many points fall on this grid!! !------------" << endl; // gridNum[xI][yI]    //    cartesianData[xI][yI] = -1;
+        // cout << "gridNum[xI][yI]: " << gridNum[xI][yI] << "------------- count how many points fall on this grid!!!------------" << endl; // gridNum[xI][yI]    //    cartesianData[xI][yI] = -1;
 
     }
 //A single cell at x, y position is selected as the center cell, and the clusterID counter is incremented by 1.
@@ -182,15 +182,14 @@ void makeClusteredCloud(PointCloud<pcl::PointXYZ>::Ptr& elevatedCloud,
         int xI = floor(numGrid*xC/roiM);  // (0~249)
         int yI = floor(numGrid*yC/roiM);  // (0~249)
 
-        // cout << "xI is "<< xI <<endl;
-        // cout << "yI is "<< yI <<endl;
-        // cout << "cartesianData is "<< cartesianData[xI][yI]<<endl;  //  (1,2,3,4,...,numCluster)
+
         int clusterNum = cartesianData[xI][yI];
         if(clusterNum != 0){
             PointXYZ o;
             o.x = grid_size*xI - roiM/2 + grid_size/2;
             o.y = grid_size*yI - roiM/2 + grid_size/2; 
             o.z = -1; 
+
             clusterCloud->push_back(o); 
         }
     }

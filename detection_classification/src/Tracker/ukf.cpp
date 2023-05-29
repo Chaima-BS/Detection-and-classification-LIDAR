@@ -52,12 +52,6 @@ UKF::UKF() {
     std_cv_yawdd_   = 2;
     std_rm_yawdd_ = 3;
 
-    // std_a_cv_   = 2;
-    // std_a_ctrv_ = 2;
-    // std_a_rm_   = 8;
-    // std_ctrv_yawdd_ = 2;
-    // std_cv_yawdd_   = 2;
-    // std_rm_yawdd_ = 3;
 
     // Laser measurement noise standard deviation position1 in m
     std_laspx_ = 0.15;
@@ -449,8 +443,8 @@ void UKF::Ctrv(double p_x, double p_y, double v, double yaw, double yawd, double
 
     //avoid division by zero
     if (fabs(yawd) > 0.001) {
-        px_p = p_x + v / yawd * (cos(yaw) - cos(yaw + yawd * delta_t));
-        py_p = p_y + v / yawd * (sin(yaw + yawd * delta_t) - sin(yaw));
+        px_p = p_x + v / yawd * (sin(yaw + yawd * delta_t) - sin(yaw));
+        py_p = p_y + v / yawd * (cos(yaw) - cos(yaw + yawd * delta_t));
     }
     else {
         px_p = p_x + v * delta_t * sin(yaw);
@@ -487,8 +481,8 @@ void UKF::Cv(double p_x, double p_y, double v, double yaw, double yawd, double n
 
     double v_p = v;
     // not sure which one, works better in curve by using yaw
-    double yaw_p = yaw;
-//    double yaw_p = 0;
+ //   double yaw_p = yaw;
+    double yaw_p = 0;
     double yawd_p = yawd;
 
     //add noise

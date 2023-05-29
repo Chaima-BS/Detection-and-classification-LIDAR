@@ -164,7 +164,7 @@ void groundRemove(PointCloud<pcl::PointXYZ>::Ptr  cloud,  // initial point cloud
 
     PointCloud<pcl::PointXYZ> filteredCloud;
 
-    cout << "------------------Starting the ground removal-----------------------" << endl;  
+   // cout << "------------------Starting the ground removal-----------------------" << endl;  
 
     // checking the Euclidean distance, filtering and removing abnormal points outside
     // the radius around the car（ rMin = 0.2; rMax = 100;）
@@ -232,5 +232,5 @@ void groundRemove(PointCloud<pcl::PointXYZ>::Ptr  cloud,  // initial point cloud
             elevatedCloud->push_back(o); 
         }
     }
-      cout << "Initial point cloud size: "<<cloud->size() << " Processed high point size: "<<elevatedCloud->size() << " Processed ground point size: "<<groundCloud->size( )<<endl;
+      cout << "Initial point cloud size: "<<cloud->size() << " Processed elevated points size: "<<elevatedCloud->size() << " Processed ground points size: "<<groundCloud->size( ) <<"\n"<<endl;
 }

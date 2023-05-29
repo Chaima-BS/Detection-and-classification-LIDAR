@@ -31,7 +31,7 @@
 #include <message_filters/sync_policies/approximate_time.h>
 
 #include <detection_classification/trackbox.h>
-
+#include <chrono>
 #include "clustering.h"
 #include "box_fitting.h"
 
@@ -39,8 +39,13 @@ using namespace std;
 using namespace Eigen;
 using namespace pcl;
 using namespace message_filters;
+using namespace chrono;
 
 int counta = 0;
+int truePositives = 0;
+int falsePositives = 0;
+int falseNegatives = 0;
+double totalTime = 0.0;
 
 ros::Publisher pub;
 
@@ -53,16 +58,16 @@ ros::Publisher box_pub;
 // callback
 void  cloud_cb (const sensor_msgs::PointCloud2ConstPtr& input){
 
-  PointCloud<pcl::PointXYZ>::Ptr none_ground_cloud (new pcl::PointCloud<pcl::PointXYZ> ());
+auto startTime = high_resolution_clock::now();
+PointCloud<pcl::PointXYZ>::Ptr none_ground_cloud (new pcl::PointCloud<pcl::PointXYZ> ());
 
   // Convert from ros msg to PCL::PointCloud data type
   fromROSMsg (*input, *none_ground_cloud);
 
-  //start processing pcl::pointcloud
-  int numCluster = 0; // global variable
+  int numCluster = 0;
   array<array<int, numGrid>, numGrid> cartesianData{};
   componentClustering(none_ground_cloud, cartesianData, numCluster);
-  cout << "Cluster ID "<<numCluster<<endl; 
+  //cout << "Cluster ID is "<<numCluster<<endl; 
 
   // for visualization
   PointCloud<pcl::PointXYZ>::Ptr clusteredCloud (new pcl::PointCloud<pcl::PointXYZ>);
@@ -72,13 +77,13 @@ void  cloud_cb (const sensor_msgs::PointCloud2ConstPtr& input){
   // Convert from PCL::PointCloud to ROS data type
   clusteredCloud->header.frame_id = none_ground_cloud->header.frame_id;
   sensor_msgs::PointCloud2 output;
-  toROSMsg(*clusteredCloud, output); 
-
-
+  toROSMsg(*clusteredCloud, output);   
  
   pub.publish(output); 
+
+
   counta ++;
-  cout << "cluster Frame: "<<counta << "----------------------------------------"<< endl; 
+  cout << "----------------------cluster Frame: "<<counta << "------------------"<< endl; 
 
   visualization_msgs::MarkerArray ma; 
   vector<PointCloud<PointXYZ>> bBoxes = boxFitting(none_ground_cloud, cartesianData, numCluster,ma);  // bBoxes
@@ -126,14 +131,28 @@ void  cloud_cb (const sensor_msgs::PointCloud2ConstPtr& input){
 //************************************cube visualiaztion******************************
 
   box_pub.publish(boxArray); 
-  // cout << "boxArray is " << boxArray<< endl;  // bBoxes
-  cout << "size of bBoxes is " << bBoxes.size() << endl;  //size of bBoxes is 2
-  cout << "size of marker is " << ma.markers.size() << endl; // size of marker is 2
+   //cout << "boxArray is " << boxArray<< endl;  // bBoxes
+  cout << "size of bBoxes is " << bBoxes.size() << endl;
+  cout << "size of marker is " << ma.markers.size() << endl;
   marker_array_pub_.publish(ma); 
 //************************************end of cube*************************************
 
+    // Calculate processing time
+    auto endTime = high_resolution_clock::now();
+    auto duration = duration_cast<milliseconds>(endTime - startTime);
+    double frameTime = duration.count() / 1000.0;  // Convert to seconds
+    totalTime += frameTime;
+/*
+    // Perform evaluation
+    // Assuming ground truth information is available for comparison
+    int numGroundTruth = 20;  // Update with the actual number of ground truth objects
+    int numDetected = bBoxes.size();
 
-
+    // Update true positives, false positives, and false negatives
+    truePositives += numDetected;
+    falsePositives += (numDetected > numGroundTruth) ? (numDetected - numGroundTruth) : 0;
+    falseNegatives += (numDetected < numGroundTruth) ? (numGroundTruth - numDetected) : 0;
+ */   
 
 //*********************************************bBoxes visualization***************************************
 
@@ -195,6 +214,23 @@ void  cloud_cb (const sensor_msgs::PointCloud2ConstPtr& input){
 
 }
 
+void calculateEvaluationMetrics() {
+    // Calculate evaluation metrics
+    double detectionRate = static_cast<double>(truePositives) / (truePositives + falseNegatives);
+    double falsePositiveRate = static_cast<double>(falsePositives) / (falsePositives + truePositives);
+    double averagePrecision = static_cast<double>(truePositives) / (truePositives + falsePositives);
+    double processingTime = totalTime / counta;
+    std::cout << "---------------------------------------------------------" << std::endl; 
+    std::cout << "truePositives: " << truePositives << std::endl;
+    std::cout << "falseNegatives: " << falseNegatives << std::endl;
+    std::cout << "falsePositives: " << falsePositives << std::endl;
+    std::cout << "---------------------------------------------------------" << std::endl; 
+    // Print evaluation metrics
+    std::cout << "Detection Rate: " << detectionRate << std::endl;
+    std::cout << "False Positive Rate: " << falsePositiveRate << std::endl;
+    std::cout << "Average Precision: " << averagePrecision << std::endl;
+    std::cout << "Processing Time: " << processingTime << " seconds" << std::endl;
+}
 
 int main (int argc, char** argv){
   // Initialize ROS
@@ -214,4 +250,11 @@ int main (int argc, char** argv){
 
   // Spin
   ros::spin ();
+
+// Calculate and output evaluation metrics
+    double processingTime = totalTime / counta;
+    std::cout << "Processing Time: " << processingTime << " seconds" << std::endl;
+
+
+    return 0;
 }

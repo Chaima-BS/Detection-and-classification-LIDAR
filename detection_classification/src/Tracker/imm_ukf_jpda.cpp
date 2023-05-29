@@ -26,7 +26,7 @@ VectorXd preMeas_;
 const double gammaG_ = 9.22;
 
 const double pG_ = 0.99;
-const double pD_ = 0.9;
+const double pD_ = 0.8;
 
 //bbox association param
 const double distanceThres_ = 99;
@@ -130,8 +130,6 @@ void getOriginPoints(double timestamp, vector<vector<double>>& originPoints,doub
     // cout << "print error dist"<< sqrt((x*x)+(y*y)) <<endl; 
 }
 
-
-
 void findMaxZandS(UKF target, VectorXd& maxDetZ, MatrixXd& maxDetS){
     double cv_det   = target.lS_cv_.determinant();
     double ctrv_det = target.lS_ctrv_.determinant();
@@ -205,7 +203,7 @@ void measurementValidation(vector<vector<double>> trackPoints, UKF& target, bool
         // cout << "meas"<<endl<<meas << endl;
     }
     if(secondInitDone) measVec.push_back(smallestMeas);
-//    cout << "size of bboxVec is " << bboxVec.size() <<endl;
+    //cout << "size of bboxVec is " << bboxVec.size() <<endl;
 }
 
 void filterPDA(UKF& target, vector<VectorXd> measVec, vector<double>& lambdaVec){
@@ -366,7 +364,6 @@ void associateBB(int trackNum, vector<VectorXd> bboxVec, UKF& target){
         return;
     }
 
-    
     if(trackNum == 5 && target.lifetime_ > lifeTimeThres_){
         vector<double> nearestBbox;
         int minDist = 999;
@@ -433,7 +430,7 @@ double getBboxArea(PointCloud<PointXYZ> bBox){
 }
 
 void updateVisBoxArea(UKF& target, VectorXd dtCP){
-    cout << "calling area update"<<endl;   
+    //cout << "calling area update"<<endl;   
     int lastInd = target.bb_yaw_history_.size()-1;
 
     double area = getBboxArea(target.bestBBox_);
@@ -534,13 +531,14 @@ void updateBB(UKF& target){
 
     double currentYaw  = getBBoxYaw(target);
     double DiffYaw = yaw - currentYaw; 
-
+    cout << "---------------" <<endl;
     cout << "box yaw "<< yaw<<endl; 
     cout << "current yaw "<< currentYaw<<endl;
-    cout << "diff yaw "<< DiffYaw <<endl;
+    //cout << "diff yaw "<< DiffYaw <<endl;
 
     //when the diff yaw is out of range, keep the previous yaw
     if(abs(DiffYaw) > bbYawChangeThres_){
+        cout << "box yaw after "<< currentYaw<<endl;
     }
     //when the diff is acceptable, update best yaw
     else if(abs(DiffYaw) < bbYawChangeThres_){
@@ -551,6 +549,7 @@ void updateBB(UKF& target){
 
         double afterYaw  = getBBoxYaw(target);
         cout << "box yaw after "<< afterYaw<<endl;
+         // assert(abs(yaw -getBBoxYaw(target)) < 0.01 );
         target.bestYaw_  = yaw;
     }
 }
@@ -647,8 +646,8 @@ void immUkfJpdaf(vector<PointCloud<PointXYZ>> bBoxes, double timestamp,
                 // py = 7.36603;
                 // px = 7.12632;
                 // py = 4.96919;
-                px =-1.5125;
-                py =  -8.975;
+                //px =-1.5125;
+                //py =  -8.975;
 
                 PointXYZ o;
                 o.x = px;
@@ -753,7 +752,6 @@ void immUkfJpdaf(vector<PointCloud<PointXYZ>> bBoxes, double timestamp,
         // bounding box validation
         updateBB(targets_[i]);
 
-        // cout << "validated meas "<<measVec[0][0]<<" "<<measVec[0][1]<<endl; 
 
         // doing combined initialization
         if(secondInit){
@@ -893,15 +891,22 @@ void immUkfJpdaf(vector<PointCloud<PointXYZ>> bBoxes, double timestamp,
             targetNumCount ++;
         }
     }
+cout << "number of tracked object in immukjpdaf: " << targetNumCount<< endl;  
 
     // static dynamic classification
-    // cout <<"classification"<<endl;
+     cout <<"----classification-----"<<endl;
     for (int i = 0; i < trackNumVec_.size(); i++){
         // once target is static, it is dtatic until lost
         if(targets_[i].isStatic_ ){
             isStaticVec[i] = true;
+              if(trackNumVec_[i] != 0){
+                 cout << "Static"<<endl;
+             }
             continue;
         } 
+         if(trackNumVec_[i] != 0){
+             cout << "Dynamic"<<endl;
+         }
        
         if(trackNumVec_[i] == 5 && targets_[i].lifetime_ > 8 ){
             // assuming below 0.3 m/s for static onject
@@ -909,12 +914,14 @@ void immUkfJpdaf(vector<PointCloud<PointXYZ>> bBoxes, double timestamp,
             distThres = 3.0;
             
             if((targets_[i].distFromInit_ < distThres)&&
-                    (targets_[i].modeProbRM_ > targets_[i].modeProbCV_ || 
-                     targets_[i].modeProbRM_ > targets_[i].modeProbCTRV_ )){
+                    (targets_[i].modeProbRM_ < targets_[i].modeProbCV_ || 
+                     targets_[i].modeProbRM_ < targets_[i].modeProbCTRV_ )){
                 isStaticVec[i] = true;
                 targets_[i].isStatic_ = true;
             }
             else{
+                isStaticVec[i] = false;
+                targets_[i].isStatic_ = false;
 
             }
         }
@@ -925,23 +932,7 @@ void immUkfJpdaf(vector<PointCloud<PointXYZ>> bBoxes, double timestamp,
     // assert(targets_.size() == targetPoints.size());
     // assert(targetPoints.size()== targetVandYaw.size());
 
-     cout << "number of tracked object in immukjpdaf " << targetNumCount<< endl;
-     cout << "track num "<< trackNumVec_[0] << endl;
-     cout << "track lifetime "<<targets_[0].lifetime_ << endl;
-     cout << "mode prob "<< " "<<targets_[0].modeProbCV_ << " "<<targets_[0].modeProbCTRV_ << " "<< targets_[0].modeProbRM_ << endl;
-     cout << "target state: "<<endl<< targets_[0].x_merge_ << endl;
-
-     cout << "target cv: "<<endl<< targets_[0].x_cv_ << endl;
-     cout << "target ctrv: "<<endl<< targets_[0].x_ctrv_ << endl;
-     cout << "target rm: "<<endl<< targets_[0].x_rm_ << endl;
-     cout << "target conariance: "<<endl<< targets_[0].P_merge_ << endl;
-
-     cout << "target velocity " << targets_[0].x_merge_(2)<< endl;
-     cout << "target yaw " << targets_[0].x_merge_(3)<< endl;
-
-     cout << "target abs velocity "<< egoVelo_ + targets_[0].x_merge_(2)*sin(targets_[0].x_merge_(3))<<endl;
-     cout << "ego velocity "<< egoVelo_ <<endl;
-     cout << "ego yaw "<< egoYaw_ <<endl;
+     
 
     trackManage = trackNumVec_;
     egoPreYaw_ = egoYaw_;

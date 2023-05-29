@@ -32,7 +32,7 @@ float tRatioMin = 2.0;
 float tRatioMax = 8.0;
 
 float minLenRatio = 3.0;
-float tPtPerM3 = 2;
+float tPtPerM3 = 8;
 
 void getClusteredPoints(PointCloud<PointXYZ>::Ptr elevatedCloud,
                         array<array<int, numGrid>, numGrid> cartesianData,
@@ -87,7 +87,8 @@ void getPointsInPcFrame(Point2f rectPoints[], vector<Point2f>& pcPoints, int off
 bool ruleBasedFilter(vector<Point2f> pcPoints, float maxZ, int numPoints){
     bool isPromising = false;
     //minimum points thresh
-    if(numPoints < 30) return isPromising;  //cout << "numPoints is "<< numPoints <<endl;
+    if(numPoints < 20) return isPromising;  
+    //cout << "numPoints is "<< numPoints <<endl;
     // length is longest side of the rectangle while width is the shorter side.
     float width, length, height, area, ratio, mass;
 
@@ -109,19 +110,11 @@ bool ruleBasedFilter(vector<Point2f> pcPoints, float maxZ, int numPoints){
         width = dist1;
     }
     // assuming ground = sensor height 
-    //  cout << "maxZ is "<< maxZ <<endl; 
     height = maxZ + sensorHeight; //  float sensorHeight = 2;  
     // assuming right angle
     area = dist1*dist2;  
     mass = area*height; 
     ratio = length/width; 
-
-     cout<< "height is " <<height<<endl;  //  2.3821
-     cout<< "width is " <<width<<endl; // 2.17553
-     cout<< "length is " <<length<<endl; //4.92502
-     cout<< "area is " <<area<<endl; //10.7145
-     cout<< "mass is " <<mass<<endl; //25.523
-     cout<< "ratio is " <<ratio<<endl; // 2.26383
 
     //start rule based filtering
     if(height > tHeightMin && height < tHeightMax){ 
@@ -201,7 +194,7 @@ visualization_msgs::Marker mark_cluster(pcl::PointCloud<pcl::PointXYZ> cloud_clu
 // A minimum area rectangle (MAR) is applied to each clustered object, resulting in a 2D box that becomes a 3D bounding box when combined with the height information retained during the clustering process
 void getBoundingBox(vector<PointCloud<PointXYZ>>  clusteredPoints,
                     vector<PointCloud<PointXYZ>>& bbPoints,visualization_msgs::MarkerArray& ma){
-    // cout << "the number of cluster is "<< clusteredPoints.size() <<endl;
+     //cout << "the number of cluster is "<< clusteredPoints.size() <<endl;
     for (int iCluster = 0; iCluster < clusteredPoints.size(); iCluster++){ 
         Mat m (picScale*roiM, picScale*roiM, CV_8UC1, Scalar(0));
         float initPX = clusteredPoints[iCluster][0].x + roiM/2;
@@ -222,7 +215,7 @@ void getBoundingBox(vector<PointCloud<PointXYZ>>  clusteredPoints,
    
         float sumX = 0; float sumY = 0;
 
-        //  cout << "the number of cluster i is "<< numPoints <<endl;
+          //cout << "the number of cluster i is "<< numPoints <<endl;
 
         for (int iPoint = 0; iPoint < clusteredPoints[iCluster].size(); iPoint++){
             float pX = clusteredPoints[iCluster][iPoint].x;  
@@ -313,13 +306,10 @@ void getBoundingBox(vector<PointCloud<PointXYZ>>  clusteredPoints,
             pcPoints[2] = Point2f(maxMx, maxMy);
             pcPoints[3] = Point2f(lastX, lastY);
 
-            // std::cout << " pcPoints[0]  " << pcPoints[0].x << " " <<  pcPoints[0].y << std::endl;
-            // std::cout << " pcPoints[1]  " << pcPoints[1].x << " " <<  pcPoints[1].y << std::endl;
-            // std::cout << " pcPoints[2]  " << pcPoints[2].x << " " <<  pcPoints[2].y << std::endl;
-            // std::cout << " pcPoints[3]  " << pcPoints[3].x << " " <<  pcPoints[3].y << std::endl;
-
+          
             bool isPromising = ruleBasedFilter(pcPoints, maxZ, numPoints);
             if(!isPromising) continue; 
+            
         }
         else{
             //MAR fitting
@@ -328,8 +318,10 @@ void getBoundingBox(vector<PointCloud<PointXYZ>>  clusteredPoints,
             // covert points back to lidar coordinate 
             getPointsInPcFrame(rectPoints, pcPoints, offsetInitX, offsetInitY);
             // rule based filter
+            
             bool isPromising = ruleBasedFilter(pcPoints, maxZ, numPoints);
             if(!isPromising) continue; 
+            
         }
 
         // make pcl cloud for 3d bounding box

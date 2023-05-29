@@ -52,7 +52,7 @@ void  cloud_cb (const object_tracking::trackbox& input){
 
 
   counta ++;
-  cout << "Frame: "<<counta << "----------------------------------------"<< endl;
+  cout << "---------------------Frame: "<<counta << " -------------------"<< endl;
 
   // --------------------convert local to global-------------------------
   double timestamp = input.header.stamp.toSec(); 
@@ -126,14 +126,14 @@ void  cloud_cb (const object_tracking::trackbox& input){
   for(int i = 0; i < bBoxes.size(); i++ ){
     bBoxes[i].header.frame_id = "velodyne";
 
-    // try {
-    //   tran->waitForTransform("/global", "/velodyne", input_time, ros::Duration(10.0));
-    //   tran->lookupTransform("/global", "/velodyne", input_time, transform2);
-    // } catch (tf::TransformException ex) {
-    //   ROS_ERROR("%s",ex.what());
-    // }
+     try {
+       tran->waitForTransform("/global", "/velodyne", input_time, ros::Duration(10.0));
+       //tran->lookupTransform("/global", "/velodyne", input_time, transform2);
+     } catch (tf::TransformException ex) {
+       ROS_ERROR("%s",ex.what());
+     }
     
-    tran->waitForTransform("/global", "/velodyne", input_time, ros::Duration(10.0));
+    //tran->waitForTransform("/global", "/velodyne", input_time, ros::Duration(10.0));
 
     pcl_ros::transformPointCloud("/global", bBoxes[i], newBox, *tran);
     bBoxes[i] = newBox;
@@ -172,7 +172,7 @@ void  cloud_cb (const object_tracking::trackbox& input){
   //------------------------end converting to ego tf-------------------------
 
 
-
+/*
   // -----------------------tracking arrows visualizing start------------------------------------
   for(int i = 0; i < targetPoints.size(); i++){
     visualization_msgs::Marker arrowsG;
@@ -228,7 +228,7 @@ void  cloud_cb (const object_tracking::trackbox& input){
 // -----------------------tracking arrows visualizing end------------------------------------
   }
 
-  
+  */
   // ------------------tracking points visualizing start---------------------------------------------
   
   visualization_msgs::Marker pointsY, pointsG, pointsR, pointsB;
@@ -276,23 +276,21 @@ void  cloud_cb (const object_tracking::trackbox& input){
     p.y = egoTFPoints[i].y;
     p.z = -1.73/2;
 
-//   cout << "is ------------------" << i <<endl;
     // cout << "trackManage[i]  " <<trackManage[i] << endl;
     if(isStaticVec[i] == true){ 
-      pointsB.points.push_back(p);    // Blue
+      pointsB.points.push_back(p);    // Blue = static
     }
-    else if(trackManage[i] < 5 ){  // Yellow
+    else if(trackManage[i] < 5 ){  // Yellow = initial track
       pointsY.points.push_back(p);
     }
-    else if(trackManage[i] == 5){  // Green
+    else if(trackManage[i] == 5){  // Green = dynamic
       pointsG.points.push_back(p);
     }
     else if(trackManage[i] > 5){
-      pointsR.points.push_back(p);    // Red
+      pointsR.points.push_back(p);    // Red = drifting track
     }
   }
   vis_pub.publish(pointsY);  
-  // cout << "pointsG" << pointsG.points[0].x << " "<< pointsG.points[0].y << endl;
   vis_pub.publish(pointsG); 
   vis_pub.publish(pointsR);  
   vis_pub.publish(pointsB);  

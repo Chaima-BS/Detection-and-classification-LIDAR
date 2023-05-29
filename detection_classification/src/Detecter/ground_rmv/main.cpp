@@ -119,7 +119,7 @@ void cloud_cb(const sensor_msgs::PointCloud2ConstPtr &input)
   ground_pub.publish(output);
 
   counta++;
-  cout << "ground Frame: " << counta << "----------------------------------------" << endl;
+  cout << "----------------------------- ground Frame: " << counta << " --------------------------------" << endl;
 }
 
 int main(int argc, char **argv)
