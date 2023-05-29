@@ -66,6 +66,6 @@ rosrun detection_classification tracker
 ```
 ### Result
 
-![arch](./overview/classification_points.png)
+![Alt Text](./overview/classification_points.png)
 
-![0001_optim](./overview/result.gif)
+![Alt Text](./overview/result.gif)
